@@ -385,6 +385,7 @@ sub get_megares {
 #..............................................................................
 sub get_argannot {
   my $fasta = 'ARG-ANNOT_NT_V6_July2019.txt';
+  #https://www.mediterranee-infection.com/acces-ressources/base-de-donnees/arg-annot-2/
   system("wget -c https://www.mediterranee-infection.com/wp-content/uploads/2019/09/ARG-ANNOT_NT_V6_July2019.txt");
   #*  download(
 #    'http://www.mediterranee-infection.com/arkotheque/client/ihumed/_depot_arko/articles/1425/argannot-aa-v3-march2017_doc.fasta',
