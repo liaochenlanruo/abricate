@@ -13,6 +13,7 @@ use Cwd qw(abs_path);
 use Data::Dumper;
 use LWP::Simple;
 use JSON;
+#use LWP::UserAgent;
 
 #..............................................................................
 # Globals
@@ -247,18 +248,22 @@ sub get_ncbi {
   my $AFP = "https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/latest";
   #my $src = "https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/data/latest/AMR_CDS";
   my $src = "$AFP/AMR_CDS";
-  my $name = "amr_cds.ffn";
+  #my $name = "amr_cds.ffn";
+  my $name = "AMR_CDS";
   #my $src2 = "https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/data/latest/ReferenceGeneCatalog.txt";
   my $src2 = "$AFP/ReferenceGeneCatalog.txt";
-  my $name2 = "amr_cds.tsv";
+  my $name2 = "ReferenceGeneCatalog.txt";
+  # my $name2 = "amr_cds.tsv";
   
   if (-r $name and -r $name2 and not $force) {
     msg("Won't overwrite existing $name/$name2 (use --force)");
 #    exit(1);
   }
   else {
-    download($src, $name);
-    download($src2, $name2);
+	  system("wget -c $src");
+	  system("wget -c $src2");
+	  #*download($src, $name);
+	  #*download($src2, $name2);
   }
 
 #1   allele
@@ -323,7 +328,8 @@ sub get_plasmidfinder {
   my $name = "plasmidfinder";
   my $zip = "$name.zip";
 #  download("https://cge.cbs.dtu.dk/cge/download_data.php?folder=$name&filename=$zip&submit=$zip", $zip);
-  download("https://bitbucket.org/genomicepidemiology/plasmidfinder_db/get/HEAD.zip", $zip);
+  system("wget -c https://bitbucket.org/genomicepidemiology/plasmidfinder_db/get/HEAD.zip -O plasmidfinder.zip");
+  #*  download("https://bitbucket.org/genomicepidemiology/plasmidfinder_db/get/HEAD.zip", $zip);
   system("unzip -j -u $zip");
 
   my @seq;
@@ -347,9 +353,11 @@ sub get_plasmidfinder {
 #..............................................................................
 sub get_megares {
   my $zip = "megares.zip";
-  download('https://megares.meglab.org/download/megares_v2.00.zip', $zip);
-  system("unzip -j -u $zip");
-  my $seqs = load_fasta( glob("megares_drugs_*.fasta") );
+  system("wget -c https://www.meglab.org/downloads/megares_v3.00/megares_database_v3.00.fasta");
+  #*download('https://megares.meglab.org/download/megares_v2.00.zip', $zip);
+  #*system("unzip -j -u $zip");
+  #*my $seqs = load_fasta( glob("megares_drugs_*.fasta") );
+  my $seqs = load_fasta( glob("megares_*.fasta") );
   my @okseq;
   # >MEG_372|Multi-compound|Drug_and_biocide_resistance|Drug_and_biocide_MATE_efflux_pumps|ABEM
   # >MEG_411|Multi-compound|Drug_and_biocide_resistance|Drug_and_biocide_RND_efflux_regulator|ACRR|RequiresSNPConfirmation
@@ -376,13 +384,15 @@ sub get_megares {
 
 #..............................................................................
 sub get_argannot {
-  my $fasta = 'arg-annot.fa';
-  download(
+  my $fasta = 'ARG-ANNOT_NT_V6_July2019.txt';
+  system("wget -c https://www.mediterranee-infection.com/wp-content/uploads/2019/09/ARG-ANNOT_NT_V6_July2019.txt");
+  #*  download(
 #    'http://www.mediterranee-infection.com/arkotheque/client/ihumed/_depot_arko/articles/1425/argannot-aa-v3-march2017_doc.fasta',
 #    'http://www.mediterranee-infection.com/arkotheque/client/ihumed/_depot_arko/articles/691/argannot-nt_doc.fasta',
-    'https://www.mediterranee-infection.com/wp-content/uploads/2019/06/ARG_ANNOT_V5_Nt_JUNE2019.txt',
-    $fasta
-  );
+#'https://www.mediterranee-infection.com/wp-content/uploads/2019/06/ARG_ANNOT_V5_Nt_JUNE2019.txt',
+	  #*    'https://www.mediterranee-infection.com/wp-content/uploads/2019/09/ARG-ANNOT_NT_V6_July2019.txt',
+	  #*    $fasta
+	  #*  );
   
   # fix syntax errors in the FASTA file...
   path($fasta)->edit( sub { s/\\//g; $_ } );
@@ -426,13 +436,15 @@ sub get_bacmet2 {
 #..............................................................................
 sub get_card {
   # https://github.com/tseemann/abricate/issues/25
-  my $tarball = 'card.tar.bz2';
-  download(
-    #'https://card.mcmaster.ca/download/0/broadstreet-v2.0.2.tar.gz',
-    'https://card.mcmaster.ca/latest/data',
+  #my $tarball = 'card.tar.bz2';
+  my $tarball = 'broadstreet-v3.2.5.tar.bz2';
+  #* download(
+  #*'https://card.mcmaster.ca/download/0/broadstreet-v3.2.5.tar.bz2',
+    #'https://card.mcmaster.ca/latest/data',
     #'https://card.mcmaster.ca/latest/data/card-data.tar.bz2',
-    $tarball # yes, it's really BZ2 not GZ ...
-  );
+    #*  $tarball # yes, it's really BZ2 not GZ ...
+    #* );
+    system("wget https://card.mcmaster.ca/download/0/broadstreet-v3.2.5.tar.bz2");
 #  my $fasta = "./nucleotide_fasta_protein_homolog_model.fasta";
   my $jsonfile = "./card.json";
   system("tar", "xf", $tarball, $jsonfile)==0 or err("Problem with tar xf $tarball $jsonfile");
@@ -586,8 +598,9 @@ sub get_ncbibetalactamase {
 
 #..............................................................................
 sub get_ecoh {
-  my $fasta = "EcOH.fa";
-  download('https://raw.githubusercontent.com/katholt/srst2/master/data/EcOH.fasta', $fasta);
+  my $fasta = "EcOH.fasta";
+  system("wget -c https://raw.githubusercontent.com/katholt/srst2/master/data/EcOH.fasta");
+  #*download('https://raw.githubusercontent.com/katholt/srst2/master/data/EcOH.fasta', $fasta);
 
   # https://github.com/katholt/srst2#generating-srst2-compatible-clustered-database-from-raw-sequences
   # [clusterID]__[gene]__[allele]__[seqID] [other stuff]
