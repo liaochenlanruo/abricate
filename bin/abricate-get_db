@@ -623,8 +623,10 @@ sub get_ecoh {
 
 #..............................................................................
 sub get_ecoli_vf {
-  my $fasta = "ecoli_vf.ffn";
-  download('https://github.com/phac-nml/ecoli_vf/raw/master/data/repaired_ecoli_vfs_shortnames.ffn', $fasta);
+  #my $fasta = "ecoli_vf.ffn";
+  #download('https://github.com/phac-nml/ecoli_vf/raw/master/data/repaired_ecoli_vfs_shortnames.ffn', $fasta);
+  my $fasta = "repaired_ecoli_vfs_shortnames.ffn";
+  system("wget https://raw.githubusercontent.com/phac-nml/ecoli_vf/master/data/repaired_ecoli_vfs_shortnames.ffn");
   my $seqs = load_fasta($fasta);
 
   # >VFG000748(gi:2865308) (espF) EspF [EspF (VF0182)] [Escherichia coli O127:H6 str. E2348/69]
